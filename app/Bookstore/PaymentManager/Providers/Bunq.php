@@ -16,7 +16,7 @@ class Bunq implements FinancialInstitution
 
     public function executePayment(string $amount)
     {
-        if ($amount > 15.00) {
+        if ($amount > 45.00) {
             return false;
         }
 

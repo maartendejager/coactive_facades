@@ -14,6 +14,7 @@
                             <div class="card-body">
                                 <h5 class="card-title text-truncate"> {{ $book->title }} </h5>
                                 <p class="card-text"> {{ Str::limit($book->description, 80) }} ... </p>
+                                <p><strong>price: €{{ $book->price  }}</strong></p>
                             </div>
                             <div class="card-footer">
                                 <p class="card-text"> <strong>Stock: {{ $book->available() }}</strong> <small class="text-muted float-right"> ISBN: {{ $book->ISBN }} </small></p>
@@ -29,38 +30,41 @@
             <div class="col">
 
                 @if (isset($alert))
-
                     <div class="alert alert-danger" role="alert">
                         {{ $alert }}
-                    </div
+                    </div>
                 @endif
-                {{ Form::open(array('route' => 'transaction.store')) }}
 
-                <div class="form-group">
-                    {{ Form::label('book', 'Choose a book') }}
-                    {{ Form::select('book', $bookselect, ['class' => 'form-control']) }}
-                </div>
+                <form method="POST" action="http://coactive_facades.test/transaction" accept-charset="UTF-8">
+                    @csrf
 
-                <div class="form-group">
-                    {{ Form::label('paymentmanager', 'Choose your bank') }}
-                    {{ Form::select('paymentmanager', $paymentmanagers) }}
-                </div>
+                    <div class="form-group">
+                        <label for="book">Choose a book</label>
+                        <select id="book" name="book" class="form-control">
+                            @foreach($books as $book)
+                                <option value="{{ $book->id }}">{{ $book->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                <div class="form-group">
-                    {{ Form::submit('Buy this book', ['class' => 'btn btn-primary mb-2']) }}
-                </div>
+                    <div class="form-group">
+                        <label for="paymentmanager">Choose your bank</label>
+                        <select id="paymentmanager" name="paymentmanager" class="form-control">
+                            @foreach($paymentmanagers as $paymentmanager)
+                                <option value="{{ $paymentmanager->id }}">{{ $paymentmanager->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
 
-                {{ Form::close() }}
+                    <div class="form-group">
+                        <input class="btn btn-primary mb-2" type="submit" value="Buy this book">
+                    </div>
+
+                </form>
+
             </div>
         </div>
 
-
-
-
-
     </div>
 
-
-
 @endsection
-

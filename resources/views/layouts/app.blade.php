@@ -76,7 +76,7 @@
         </div>
     </nav>
 
-    <main class="py-4 h-100 border">
+    <main class="py-4 h-100">
         @yield('content')
     </main>
 </div>

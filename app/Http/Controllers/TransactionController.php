@@ -31,11 +31,10 @@ class TransactionController extends Controller
     public function create()
     {
         $alert = session('alert');
-
         $books = Book::all();
-        $bookselect = Book::pluck('title', 'id')->all();
-        $paymentmanagers = PaymentProvider::pluck('name', 'id')->all();
-        return view('transaction.create', compact('books', 'bookselect', 'paymentmanagers', 'alert'));
+        $paymentmanagers = PaymentProvider::all();
+
+        return view('transaction.create', compact('books', 'paymentmanagers', 'alert'));
     }
 
     /**
@@ -45,32 +44,36 @@ class TransactionController extends Controller
     {
         $book = Book::find($request->book);
 
-        // Check if the book is in stock and reserve the book
+        // Reserve the book if it is in stock
         $stockManger = new StockManager();
-        if (!$stockManger->bookIsInStock($book)) {
+        $reservation = $stockManger->reserveBook($book, Auth::user());
+
+        if (!$reservation) {
             session()->flash('alert', 'Sorry, this book is not in stock!');
 
-            return redirect()->route('transaction.create');
+            return redirect()->back();
         }
-
-        $reservation = $stockManger->reserveBook($book, Auth::user());
 
         // Make payment
         $financialInstitution = InstitutionService::findPaymentInstitutionByName($request->paymentmanager);
         $paymentManager = new PaymentManager($book, $financialInstitution);
 
-
         if (!$paymentManager->payForBook()) {
+            $stockManger->clearReservation($reservation);
             session()->flash('alert', 'Sorry, your payment failed!');
 
-            return redirect()->route('transaction.create');
+            return redirect()->back();
         }
-        return 'here';
 
         // Update Stock
-        $stockManger->sellReservedBook($reservation);
+        $transaction = $stockManger->sellReservedBook($reservation);
 
         // Generate Invoice
+        $invoiceManager = new InvoiceManager($paymentManager, $transaction);
+        $transaction->invoice = $invoiceManager->generate();
+        $transaction->save();
+
+        return redirect()->route('transaction.show', $transaction);
 
     }
 
@@ -79,7 +82,9 @@ class TransactionController extends Controller
      */
     public function show(Transaction $transaction)
     {
-        //
+        $invoice = $transaction->invoice;
+
+        return view('transaction.show', compact('invoice'));
     }
 
 

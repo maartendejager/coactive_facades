@@ -6,6 +6,7 @@ namespace App\Bookstore\StockManager;
 
 use App\Book;
 use App\Reservation;
+use App\Transaction;
 use App\User;
 
 class StockManager
@@ -28,6 +29,10 @@ class StockManager
      */
     public function reserveBook(Book $book, User $user = null)
     {
+        if (!$this->bookIsInStock($book)) {
+            return false;
+        }
+
         $reservation = Reservation::create([
             'user' => $user,
             'book' => $book
@@ -39,7 +44,7 @@ class StockManager
     /**
      * Remove a reservation
      */
-    public function unReserveBook(Reservation $reservation)
+    public function clearReservation(Reservation $reservation)
     {
         $reservation->delete();
     }
@@ -50,8 +55,21 @@ class StockManager
      */
     public function sellReservedBook(Reservation $reservation)
     {
-        $reservation->book()->stock--;
+        $book = $reservation->book;
+        $user = $reservation->user;
 
-        $this->unReserveBook($reservation);
+        $book->stock--;
+        $book->save();
+
+        $transaction = new Transaction([
+            'user' => $user,
+            'book' => $book,
+            'price' => $book->price
+        ]);
+
+        $this->clearReservation($reservation);
+
+        return $transaction;
     }
 }
+
