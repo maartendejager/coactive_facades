@@ -5,26 +5,26 @@ namespace App\Bookstore\PaymentManager;
 
 
 use App\Book;
-use App\Bookstore\PaymentManager\Interfaces\Payment;
+use App\Bookstore\PaymentManager\Interfaces\FinancialInstitution;
 
 class PaymentManager
 {
     private $book;
-    private $payment;
+    private $institution;
 
-    public function __construct(Book $book, Payment $payment)
+    public function __construct(Book $book, FinancialInstitution $payment)
     {
         $this->book = $book;
-        $this->payment = $payment;
+        $this->institution = $payment;
     }
 
-    public function payForBook(Book $book)
+    public function payForBook()
     {
-        if (!$this->payment->authorizeAccount()) {
+        if (!$this->institution->authorizeAccount()) {
             return false;
         }
 
-        return $this->payment->executePayment($this->book->price);
+        return $this->institution->executePayment($this->book->price);
     }
 
 }

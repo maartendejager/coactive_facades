@@ -24,14 +24,10 @@ class StockManager
     }
 
     /**
-     * Reserve a book if it is in stock
+     * Reserve a book
      */
     public function reserveBook(Book $book, User $user = null)
     {
-        if (!$this->bookIsInStock($book)) {
-            return false;
-        }
-
         $reservation = Reservation::create([
             'user' => $user,
             'book' => $book

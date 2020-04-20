@@ -4,9 +4,9 @@
 namespace App\Bookstore\PaymentManager\Interfaces;
 
 
-interface Payment
+interface FinancialInstitution
 {
     public function authorizeAccount();
 
-    public function executePayment();
+    public function executePayment(string $amount);
 }

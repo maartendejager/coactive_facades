@@ -4,24 +4,24 @@
 namespace App\Bookstore\InvoiceManager;
 
 
-use App\Bookstore\PaymentManager\Interfaces\Payment;
+use App\Bookstore\PaymentManager\Interfaces\FinancialInstitution;
 
 class InvoiceManager
 {
 
-    protected $payment;
+    protected $financialInstitution;
     protected $book;
     /**
      * InvoiceManager constructor.
      */
-    public function __construct(Payment $payment, Book $book)
+    public function __construct(FinancialInstitution $financialInstitution, Book $book)
     {
-        $this->payment = $payment;
+        $this->financialInstitution = $financialInstitution;
         $this->book = $book;
     }
 
     public function generate()
     {
-        return "You bought $this->book for $this->payment->price.";
+        return "You bought $this->book for $this->financialInstitution->price.";
     }
 }

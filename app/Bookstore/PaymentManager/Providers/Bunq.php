@@ -4,23 +4,19 @@
 namespace App\Bookstore\PaymentManager\Providers;
 
 
-class Bunq implements \App\Bookstore\PaymentManager\Interfaces\Payment
+use \App\Bookstore\PaymentManager\Interfaces\FinancialInstitution;
+
+
+class Bunq implements FinancialInstitution
 {
-    protected $amount;
-
-    public function __construct(float $amount)
-    {
-        $this->amount = $amount;
-    }
-
     public function authorizeAccount()
     {
         return true;
     }
 
-    public function executePayment()
+    public function executePayment(string $amount)
     {
-        if ($this->amount > 15.00) {
+        if ($amount > 15.00) {
             return false;
         }
 

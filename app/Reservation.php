@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Reservation extends Model
 {
+    protected $guarded = [];
+
     public function setUserAttribute(User $user)
     {
         $this->attributes['user_id'] = $user->getKey();

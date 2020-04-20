@@ -15,12 +15,13 @@
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
     <link href="https://fonts.googleapis.com/css?family=Nunito" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,600" rel="stylesheet">
 
     <!-- Styles -->
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
 </head>
 <body>
-<div id="app">
+<div id="app" class="h-100">
     <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm hidden">
         <div class="container">
             <a class="navbar-brand" href="{{ url('/') }}">
@@ -33,6 +34,9 @@
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <!-- Left Side Of Navbar -->
                 <ul class="navbar-nav mr-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ route('transaction.create') }}">Bookstore</a>
+                    </li>
 
                 </ul>
 
@@ -72,7 +76,7 @@
         </div>
     </nav>
 
-    <main class="py-4">
+    <main class="py-4 h-100 border">
         @yield('content')
     </main>
 </div>
