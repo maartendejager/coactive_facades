@@ -48,10 +48,10 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="paymentmanager">Choose your bank</label>
-                        <select id="paymentmanager" name="paymentmanager" class="form-control">
-                            @foreach($paymentmanagers as $paymentmanager)
-                                <option value="{{ $paymentmanager->id }}">{{ $paymentmanager->name }}</option>
+                        <label for="bank">Choose your bank</label>
+                        <select id="bank" name="bank" class="form-control">
+                            @foreach($banks as $bank)
+                                <option value="{{ $bank->id }}">{{ $bank->name }}</option>
                             @endforeach
                         </select>
                     </div>

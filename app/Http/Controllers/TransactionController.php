@@ -7,11 +7,11 @@ use App\Transaction;
 use App\PaymentProvider;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Request as RequestFacade;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Redirect;
 use App\Bookstore\StockManager\StockManager;
 use App\Bookstore\InvoiceManager\InvoiceManager;
 use App\Bookstore\PaymentManager\PaymentManager;
-use App\Bookstore\PaymentManager\Providers\Bunq;
 use App\Bookstore\PaymentManager\Services\InstitutionService;
 
 class TransactionController extends Controller
@@ -32,9 +32,9 @@ class TransactionController extends Controller
     {
         $alert = session('alert');
         $books = Book::all();
-        $paymentmanagers = PaymentProvider::all();
+        $banks = PaymentProvider::all();
 
-        return view('transaction.create', compact('books', 'paymentmanagers', 'alert'));
+        return view('transaction.create', compact('books', 'banks', 'alert'));
     }
 
     /**
@@ -43,38 +43,40 @@ class TransactionController extends Controller
     public function store(Request $request)
     {
         $book = Book::find($request->book);
+        $bank = $request->bank;
 
         // Reserve the book if it is in stock
-        $stockManger = new StockManager();
-        $reservation = $stockManger->reserveBook($book, Auth::user());
+        $stockManager = new StockManager();
+        $reservation = $stockManager->reserveBook($book, Auth::user());
 
         if (!$reservation) {
-            session()->flash('alert', 'Sorry, this book is not in stock!');
+            Session::flash('alert', 'Sorry, this book is not in stock!');
 
-            return redirect()->back();
+            return Redirect::back();
         }
 
         // Make payment
-        $financialInstitution = InstitutionService::findPaymentInstitutionByName($request->paymentmanager);
+        $financialInstitution = InstitutionService::findPaymentInstitutionByName($bank);
         $paymentManager = new PaymentManager($book, $financialInstitution);
 
         if (!$paymentManager->payForBook()) {
-            $stockManger->clearReservation($reservation);
-            session()->flash('alert', 'Sorry, your payment failed!');
+            $stockManager->clearReservation($reservation);
 
-            return redirect()->back();
+            Session::flash('alert', 'Sorry, your payment failed!');
+
+            return Redirect::back();
         }
 
         // Update Stock
-        $transaction = $stockManger->sellReservedBook($reservation);
+        $transaction = $stockManager->sellReservedBook($reservation);
+
 
         // Generate Invoice
         $invoiceManager = new InvoiceManager($paymentManager, $transaction);
         $transaction->invoice = $invoiceManager->generate();
         $transaction->save();
 
-        return redirect()->route('transaction.show', $transaction);
-
+        return Redirect::route('transaction.show', $transaction);
     }
 
     /**
