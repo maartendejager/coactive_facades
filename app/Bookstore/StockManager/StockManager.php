@@ -27,7 +27,7 @@ class StockManager
     /**
      * Reserve a book
      */
-    public function reserveBook(Book $book, User $user = null)
+    public function reserveBook(Book $book, User $user = null, bool $prereserve = false)
     {
         if (!$this->bookIsInStock($book)) {
             return false;

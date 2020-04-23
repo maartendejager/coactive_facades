@@ -6,7 +6,7 @@ use App\Book;
 use App\Transaction;
 use App\PaymentProvider;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
+use App\Bookstore\Facades\Bookstore;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Redirect;
 use App\Bookstore\StockManager\StockManager;
@@ -46,34 +46,12 @@ class TransactionController extends Controller
         $bank = $request->bank;
 
         // Reserve the book if it is in stock
-        $stockManager = new StockManager();
-        $reservation = $stockManager->reserveBook($book, Auth::user());
-
-        if (!$reservation) {
-            session()->flash('alert', 'Sorry, this book is not in stock!');
-
-            return redirect()->back();
-        }
 
         // Make payment
-        $financialInstitution = InstitutionService::findPaymentInstitutionByName($bank);
-        $paymentManager = new PaymentManager($book, $financialInstitution);
-
-        if (!$paymentManager->payForBook()) {
-            $stockManager->clearReservation($reservation);
-
-            session()->flash('alert', 'Sorry, your payment failed!');
-            return redirect()->back();
-        }
 
         // Update Stock
-        $transaction = $stockManager->sellReservedBook($reservation);
-
 
         // Generate Invoice
-        $invoiceManager = new InvoiceManager($paymentManager, $transaction);
-        $transaction->invoice = $invoiceManager->generate();
-        $transaction->save();
 
         return Redirect::route('transaction.show', $transaction);
     }
@@ -87,6 +65,4 @@ class TransactionController extends Controller
 
         return view('transaction.show', compact('invoice'));
     }
-
-
 }

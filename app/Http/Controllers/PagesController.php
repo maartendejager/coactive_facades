@@ -12,6 +12,5 @@ class PagesController extends Controller
             $name = Request::get('name');
 
             return view('welcome', compact('name'));
-
     }
 }

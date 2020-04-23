@@ -9,9 +9,8 @@ use App\Bookstore\InvoiceManager\InvoiceManager;
 use App\Bookstore\PaymentManager\PaymentManager;
 use App\Bookstore\PaymentManager\Services\InstitutionService;
 use App\Bookstore\StockManager\StockManager;
-use Illuminate\Support\Facades\Auth;
 
-class Bookstore
+class BookWarehouse
 {
     private $bank;
     public $transaction;
@@ -30,31 +29,23 @@ class Bookstore
 
     public function sellBook(Book $book)
     {
-        // Reserve the book if it is in stock
+        $user = Auth::user();
+        $company = $user->company;
+
+        // Reserve a book for each student
+        // if there are not enough books, pre-reserve them.
         $stockManager = new StockManager();
-        $reservation = $stockManager->reserveBook($book, Auth::user());
 
-        if (!$reservation) {
-            $this->message = 'Sorry, this book is not in stock!';
+        foreach ($company->subscriptions as $student) {
+            $reservation = $stockManager->reserveBook($book, $student, true);
 
-            return false;
+            $transaction = $stockManager->sellReservedBook($reservation);
         }
 
-        // Make payment
+        // Generate Invoice
         $financialInstitution = InstitutionService::findPaymentInstitutionByName($this->bank);
         $paymentManager = new PaymentManager($book, $financialInstitution);
 
-        if (!$paymentManager->payForBook()) {
-            $stockManager->clearReservation($reservation);
-            $this->message = 'Sorry, your payment failed!';
-
-            return false;
-        }
-
-        // Update Stock
-        $transaction = $stockManager->sellReservedBook($reservation);
-
-        // Generate Receipt
         $invoiceManager = new InvoiceManager($paymentManager, $transaction);
         $transaction->invoice = $invoiceManager->generate();
         $transaction->save();
@@ -63,4 +54,5 @@ class Bookstore
 
         return true;
     }
+
 }
