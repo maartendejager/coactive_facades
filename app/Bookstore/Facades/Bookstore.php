@@ -14,26 +14,50 @@ use Illuminate\Support\Facades\Auth;
 class Bookstore
 {
     private $bank;
+
     public $transaction;
+
     /**
      * @var string
      */
     public $message;
 
     /**
+     * @var StockManager
+     */
+    private $stockManager;
+
+    /**
+     * @var \App\Bookstore\PaymentManager\Providers\Bunq|\App\Bookstore\PaymentManager\Providers\Ing|\App\Bookstore\PaymentManager\Providers\Triodos
+     */
+    private $financialInstitution;
+
+    /**
+     * @var Book
+     */
+    private $book;
+    /**
+     * @var PaymentManager
+     */
+    private $paymentManager;
+
+    /**
      * Bookstore constructor.
      */
-    public function __construct($bank)
+    public function __construct($bank, Book $book)
     {
         $this->bank = $bank;
+        $this->book = $book;
+
+        $this->stockManager = new StockManager();
+        $this->financialInstitution = InstitutionService::findPaymentInstitutionByName($this->bank);
+        $this->paymentManager = new PaymentManager($this->book, $this->financialInstitution);
     }
 
-    public function sellBook(Book $book)
+    public function sellBook()
     {
         // Reserve the book if it is in stock
-        $stockManager = new StockManager();
-        $reservation = $stockManager->reserveBook($book, Auth::user());
-
+        $reservation = $this->stockManager->reserveBook($this->book, Auth::user());
         if (!$reservation) {
             $this->message = 'Sorry, this book is not in stock!';
 
@@ -41,22 +65,21 @@ class Bookstore
         }
 
         // Make payment
-        $financialInstitution = InstitutionService::findPaymentInstitutionByName($this->bank);
-        $paymentManager = new PaymentManager($book, $financialInstitution);
+        if (!$this->paymentManager->payForBook()) {
+            $this->stockManager->clearReservation($reservation);
 
-        if (!$paymentManager->payForBook()) {
-            $stockManager->clearReservation($reservation);
             $this->message = 'Sorry, your payment failed!';
 
             return false;
         }
 
         // Update Stock
-        $transaction = $stockManager->sellReservedBook($reservation);
+        $transaction = $this->stockManager->sellReservedBook($reservation);
 
         // Generate Receipt
-        $invoiceManager = new InvoiceManager($paymentManager, $transaction);
+        $invoiceManager = new InvoiceManager($this->paymentManager, $transaction);
         $transaction->invoice = $invoiceManager->generate();
+
         $transaction->save();
 
         $this->transaction = $transaction;

@@ -51,7 +51,7 @@ class TransactionController extends Controller
 
         // Update Stock
 
-        // Generate Invoice
+        // Generate Receipt
 
         return Redirect::route('transaction.show', $transaction);
     }

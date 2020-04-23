@@ -18,6 +18,10 @@ class BookWarehouse
      * @var string
      */
     public $message;
+    /**
+     * @var StockManager
+     */
+    private $stockManager;
 
     /**
      * Bookstore constructor.
@@ -25,6 +29,8 @@ class BookWarehouse
     public function __construct($bank)
     {
         $this->bank = $bank;
+
+        $this->stockManager = new StockManager();
     }
 
     public function sellBook(Book $book)
@@ -33,13 +39,11 @@ class BookWarehouse
         $company = $user->company;
 
         // Reserve a book for each student
-        // if there are not enough books, pre-reserve them.
-        $stockManager = new StockManager();
-
+        // If there are not enough books, pre-reserve them.
         foreach ($company->subscriptions as $student) {
-            $reservation = $stockManager->reserveBook($book, $student, true);
+            $reservation = $this->stockManager->reserveBook($book, $student, true);
 
-            $transaction = $stockManager->sellReservedBook($reservation);
+            $transaction = $this->stockManager->sellReservedBook($reservation);
         }
 
         // Generate Invoice
