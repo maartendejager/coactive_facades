@@ -50,9 +50,9 @@ class TransactionController extends Controller
         $reservation = $stockManager->reserveBook($book, Auth::user());
 
         if (!$reservation) {
-            Session::flash('alert', 'Sorry, this book is not in stock!');
+            session()->flash('alert', 'Sorry, this book is not in stock!');
 
-            return Redirect::back();
+            return redirect()->back();
         }
 
         // Make payment
@@ -62,9 +62,8 @@ class TransactionController extends Controller
         if (!$paymentManager->payForBook()) {
             $stockManager->clearReservation($reservation);
 
-            Session::flash('alert', 'Sorry, your payment failed!');
-
-            return Redirect::back();
+            session()->flash('alert', 'Sorry, your payment failed!');
+            return redirect()->back();
         }
 
         // Update Stock

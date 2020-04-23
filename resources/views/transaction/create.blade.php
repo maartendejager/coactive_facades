@@ -12,9 +12,9 @@
                         <div class="card mr-3">
                             <img class="card-img-top p-3" src="/img/books/{{ $book->image }}" alt="Card image cap">
                             <div class="card-body">
-                                <h5 class="card-title text-truncate"> {{ $book->title }} </h5>
-                                <p class="card-text"> {{ Str::limit($book->description, 80) }} ... </p>
-                                <p><strong>price: €{{ $book->price  }}</strong></p>
+                                <h4 class="card-title text-truncate"> {{ $book->title }} </h4>
+                                <p class="card-text d-none"> {{ Str::limit($book->description, 80) }} ... </p>
+                                <h5><strong>price: €{{ $book->price  }}</strong></h5>
                             </div>
                             <div class="card-footer">
                                 <p class="card-text"> <strong>Stock: {{ $book->available() }}</strong> <small class="text-muted float-right"> ISBN: {{ $book->ISBN }} </small></p>
